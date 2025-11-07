@@ -1,0 +1,5 @@
+1. Introduce the problem and financial impact.
+2. Upload CSV in Streamlit and show predictions.
+3. Show flagged transactions + alerts.
+4. Explain metrics (Precision, Recall, AUC).
+5. End with deployment & scalability notes.
