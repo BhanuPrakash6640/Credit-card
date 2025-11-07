@@ -167,7 +167,7 @@ def main():
         
         st.markdown("---")
         st.markdown("### Quick Actions")
-        use_sample = st.button("📂 Load Sample Data", use_column_width=True)
+        use_sample = st.button("📂 Load Sample Data")
     
     # Load model (optional - app works without it)
     model, preprocessor = load_model_and_preprocessor()
@@ -206,7 +206,7 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
         )
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🎲 Use Sample Data", use_column_width=True) or use_sample:
+        if st.button("🎲 Use Sample Data") or use_sample:
             uploaded_file = "sample"
     
     if uploaded_file is not None:
