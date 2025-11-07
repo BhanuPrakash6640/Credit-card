@@ -167,7 +167,7 @@ def main():
         
         st.markdown("---")
         st.markdown("### Quick Actions")
-        use_sample = st.button("📂 Load Sample Data", use_container_width=True)
+        use_sample = st.button("📂 Load Sample Data", use_column_width=True)
     
     # Load model (optional - app works without it)
     model, preprocessor = load_model_and_preprocessor()
@@ -206,7 +206,7 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
         )
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🎲 Use Sample Data", use_container_width=True) or use_sample:
+        if st.button("🎲 Use Sample Data", use_column_width=True) or use_sample:
             uploaded_file = "sample"
     
     if uploaded_file is not None:
@@ -218,6 +218,12 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                 show_alert_banner("ℹ️ Using sample data for demonstration", "info")
             else:
                 df = pd.read_csv(uploaded_file)
+                # Convert all columns to numeric, coerce errors to NaN
+                for col in df.columns:
+                    if col not in ['Class']:  # Keep Class as is if it exists
+                        df[col] = pd.to_numeric(df[col], errors='coerce')
+                # Fill any NaN values with 0
+                df = df.fillna(0)
                 show_alert_banner(f"✅ Loaded {len(df)} transactions successfully", "success")
             
             # Preprocess and predict
@@ -285,7 +291,6 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                     
                     st.dataframe(
                         flagged[display_cols].head(50),
-                        use_container_width=True,
                         height=400
                     )
                     
@@ -307,24 +312,24 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                 with col1:
                     # Fraud distribution
                     fig1 = plot_fraud_distribution(df)
-                    st.plotly_chart(fig1, use_container_width=True)
+                    st.plotly_chart(fig1)
                     
                     # Amount distribution (if available)
                     if 'Amount' in df.columns:
                         fig3 = plot_amount_distribution(df)
                         if fig3:
-                            st.plotly_chart(fig3, use_container_width=True)
+                            st.plotly_chart(fig3)
                 
                 with col2:
                     # Pie chart
                     fig2 = plot_fraud_pie_chart(fraud_count, normal_count)
-                    st.plotly_chart(fig2, use_container_width=True)
+                    st.plotly_chart(fig2)
                     
                     # Time series (if available)
                     if 'Time' in df.columns:
                         fig4 = plot_time_series(df)
                         if fig4:
-                            st.plotly_chart(fig4, use_container_width=True)
+                            st.plotly_chart(fig4)
             
             with tab3:
                 st.markdown("### 📋 All Transactions")
@@ -345,7 +350,7 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                 else:
                     display_df = df
                 
-                st.dataframe(display_df, use_container_width=True, height=400)
+                st.dataframe(display_df, height=400)
             
             with tab4:
                 st.markdown("### 💾 Export Results")
@@ -371,7 +376,7 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                 
                 # Generate PDF report button (placeholder)
                 st.markdown("---")
-                if st.button("📄 Generate PDF Report", use_container_width=True):
+                if st.button("📄 Generate PDF Report", use_column_width=True):
                     st.info("📄 PDF report generation feature coming soon!")
         
         except Exception as e:
@@ -400,14 +405,13 @@ def show_explainability_page(model: Optional[FraudDetectionModel], preprocessor:
         with col1:
             top_n = st.slider("Number of features to display", 5, 30, 15)
             fig = plot_feature_importance_bar(model.feature_importance, top_n)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig)
         
         with col2:
             st.markdown("#### Top 10 Features")
             st.dataframe(
                 model.feature_importance.head(10)[['feature', 'importance']],
-                hide_index=True,
-                use_container_width=True
+                hide_index=True
             )
     
     # Individual prediction explanation
@@ -483,8 +487,7 @@ def show_metrics_page(model: Optional[FraudDetectionModel]):
         with col1:
             st.markdown("#### Classification Metrics")
             st.dataframe(
-                pd.DataFrame([metrics]).T.rename(columns={0: 'Value'}),
-                use_container_width=True
+                pd.DataFrame([metrics]).T.rename(columns={0: 'Value'})
             )
         
         with col2:

@@ -192,8 +192,7 @@ def create_download_button(df: pd.DataFrame, filename: str, label: str):
         label=f"⬇️ {label}",
         data=csv,
         file_name=filename,
-        mime='text/csv',
-        use_container_width=True
+        mime='text/csv'
     )
 
 
@@ -257,7 +256,6 @@ def create_searchable_table(df: pd.DataFrame, key: str = "table"):
     """Create a searchable and sortable dataframe"""
     st.dataframe(
         df,
-        use_container_width=True,
         height=400,
         hide_index=True
     )
