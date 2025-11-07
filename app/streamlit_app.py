@@ -376,7 +376,7 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                 
                 # Generate PDF report button (placeholder)
                 st.markdown("---")
-                if st.button("📄 Generate PDF Report", use_column_width=True):
+                if st.button("📄 Generate PDF Report"):
                     st.info("📄 PDF report generation feature coming soon!")
         
         except Exception as e:
