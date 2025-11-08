@@ -65,6 +65,7 @@ def load_model_and_preprocessor():
         return None, None
 
 
+@st.cache_data
 def generate_sample_data(n_samples: int = 100) -> pd.DataFrame:
     """Generate sample transaction data for demo"""
     np.random.seed(42)
@@ -214,7 +215,7 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
             # Load data
             if uploaded_file == "sample":
                 with st.spinner("Generating sample data..."):
-                    df = generate_sample_data(500)
+                    df = generate_sample_data(200)  # Reduced from 500 for faster loading
                 show_alert_banner("ℹ️ Using sample data for demonstration", "info")
             else:
                 df = pd.read_csv(uploaded_file)
