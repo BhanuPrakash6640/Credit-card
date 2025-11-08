@@ -220,11 +220,9 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
             else:
                 df = pd.read_csv(uploaded_file)
                 # Convert all columns to numeric, coerce errors to NaN
-                for col in df.columns:
-                    if col not in ['Class']:  # Keep Class as is if it exists
-                        df[col] = pd.to_numeric(df[col], errors='coerce')
+                df = df.apply(pd.to_numeric, errors='coerce')
                 # Fill any NaN values with 0
-                df = df.fillna(0)
+                df = df.fillna(0).copy()  # Use copy() to avoid fragmentation
                 show_alert_banner(f"✅ Loaded {len(df)} transactions successfully", "success")
             
             # Preprocess and predict
@@ -242,6 +240,8 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                 
                 df['fraud_probability'] = probs
                 df['predicted_fraud'] = preds
+                # Defragment dataframe to avoid warnings
+                df = df.copy()
             
             # Summary metrics
             fraud_count = preds.sum()
