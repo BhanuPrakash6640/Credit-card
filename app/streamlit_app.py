@@ -218,30 +218,58 @@ def show_dashboard_page(model: Optional[FraudDetectionModel], preprocessor: Opti
                     df = generate_sample_data(200)  # Reduced from 500 for faster loading
                 show_alert_banner("ℹ️ Using sample data for demonstration", "info")
             else:
-                df = pd.read_csv(uploaded_file)
-                # Convert all columns to numeric, coerce errors to NaN
-                df = df.apply(pd.to_numeric, errors='coerce')
-                # Fill any NaN values with 0
-                df = df.fillna(0).copy()  # Use copy() to avoid fragmentation
-                show_alert_banner(f"✅ Loaded {len(df)} transactions successfully", "success")
+                try:
+                    df = pd.read_csv(uploaded_file)
+                    
+                    # Validate minimum columns
+                    if len(df.columns) < 2:
+                        st.error("❌ File must have at least 2 columns")
+                        return
+                    
+                    # Convert all columns to numeric, coerce errors to NaN
+                    df = df.apply(pd.to_numeric, errors='coerce')
+                    # Fill any NaN values with 0
+                    df = df.fillna(0).copy()  # Use copy() to avoid fragmentation
+                    
+                    # Limit rows to prevent memory issues
+                    if len(df) > 10000:
+                        df = df.head(10000)
+                        st.warning("⚠️ Large file detected. Showing first 10,000 rows only.")
+                    
+                    show_alert_banner(f"✅ Loaded {len(df)} transactions successfully", "success")
+                except Exception as file_error:
+                    st.error(f"❌ Error reading file: {str(file_error)}")
+                    st.info("💡 Make sure your file is a valid CSV with numeric data")
+                    return
             
             # Preprocess and predict
             with st.spinner("🔄 Analyzing transactions..."):
-                if model is not None and preprocessor is not None:
-                    # Use real model
-                    X, _ = preprocessor.prepare_features(df, fit=False)
-                    probs = model.predict_proba(X)
-                    preds = model.predict(X)
-                else:
-                    # Demo mode - generate random predictions
+                try:
+                    if model is not None and preprocessor is not None:
+                        # Use real model
+                        X, _ = preprocessor.prepare_features(df, fit=False)
+                        probs = model.predict_proba(X)
+                        preds = model.predict(X)
+                    else:
+                        # Demo mode - generate random predictions
+                        np.random.seed(42)
+                        probs = np.random.beta(2, 10, size=len(df))  # Most values low, some high
+                        preds = (probs > 0.5).astype(int)
+                    
+                    df['fraud_probability'] = probs
+                    df['predicted_fraud'] = preds
+                    # Defragment dataframe to avoid warnings
+                    df = df.copy()
+                except Exception as pred_error:
+                    st.error(f"❌ Error during prediction: {str(pred_error)}")
+                    st.info("💡 Running in demo mode with random predictions instead")
+                    # Fallback to demo mode
                     np.random.seed(42)
-                    probs = np.random.beta(2, 10, size=len(df))  # Most values low, some high
+                    probs = np.random.beta(2, 10, size=len(df))
                     preds = (probs > 0.5).astype(int)
-                
-                df['fraud_probability'] = probs
-                df['predicted_fraud'] = preds
-                # Defragment dataframe to avoid warnings
-                df = df.copy()
+                    df['fraud_probability'] = probs
+                    df['predicted_fraud'] = preds
+                    df = df.copy()
             
             # Summary metrics
             fraud_count = preds.sum()
